@@ -99,36 +99,27 @@ cd laravel-docker-examples
 
 ### Setting Up the Development Environment
 
-1. Copy the .env.example file to .env and adjust any necessary environment variables:
+1. Run all these nested commands at once:
 
 ```bash
-cp .env.example .env
+# 1.1. Copy the .env.example file to .env (if don't exists) and adjust the `UID` and `GID` variables:
+[ ! -f .env ] && cp .env.example .env; \
+grep -q '^UID=' .env && sed -i "s/^UID=.*/UID=$(id -u)/" .env || echo "UID=$(id -u)" >> .env && \
+grep -q '^GID=' .env && sed -i "s/^GID=.*/GID=$(id -g)/" .env || echo "GID=$(id -g)" >> .env && \
+# 1.2. Build and run one service to install some Laravel dependencies and create app_key:
+docker compose -f compose.dev.yaml up -d workspace && \
+docker compose -f compose.dev.yaml exec workspace bash -c "composer install && php artisan key:generate" && \
+# 1.3. Start the rest of Docker Compose Services:
+docker compose -f compose.dev.yaml up -d && \
+# 1.4. Install other dependencies and run migrations:
+docker compose -f compose.dev.yaml exec workspace bash -c " \
+. /home/www/.nvm/nvm.sh && \
+npm install && \
+php artisan migrate && \
+npm run dev"
 ```
 
-Hint: adjust the `UID` and `GID` variables in the `.env` file to match your user ID and group ID. You can find these by running `id -u` and `id -g` in the terminal.
-
-2. Start the Docker Compose Services:
-
-```bash
-docker compose -f compose.dev.yaml up -d
-```
-
-3. Install Laravel Dependencies:
-
-```bash
-docker compose -f compose.dev.yaml exec workspace bash
-composer install
-npm install
-npm run dev
-```
-
-4. Run Migrations:
-
-```bash
-docker compose -f compose.dev.yaml exec workspace php artisan migrate
-```
-
-5. Access the Application:
+2. Access the Application:
 
 Open your browser and navigate to [http://localhost](http://localhost).
 
