@@ -57,7 +57,7 @@ The production environment is configured using the `compose.prod.yaml` file. It 
 - **Pre-Built Assets**: Assets are compiled during the build process, ensuring the container is ready to serve content immediately upon deployment.
 - **Health Checks**: Built-in health checks monitor service statuses and ensure smooth operation.
 - **Security Best Practices**: Minimizes the attack surface by excluding unnecessary packages and users.
-- **Docker Compose for Production**: Tailored for deploying Laravel applications with Nginx, PHP-FPM, Redis, and PostgreSQL.
+- **Docker Compose for Production**: Tailored for deploying Laravel applications with Nginx, PHP-FPM, Redis, and MySQL.
 
 This environment is designed for easy deployment to any Docker-compatible hosting platform.
 
@@ -99,36 +99,27 @@ cd laravel-docker-examples
 
 ### Setting Up the Development Environment
 
-1. Copy the .env.example file to .env and adjust any necessary environment variables:
+1. Run all these nested commands at once:
 
 ```bash
-cp .env.example .env
+# 1.1. Copy the .env.example file to .env (if don't exists) and adjust the `UID` and `GID` variables:
+[ ! -f .env ] && cp .env.example .env; \
+grep -q '^UID=' .env && sed -i "s/^UID=.*/UID=$(id -u)/" .env || echo "UID=$(id -u)" >> .env && \
+grep -q '^GID=' .env && sed -i "s/^GID=.*/GID=$(id -g)/" .env || echo "GID=$(id -g)" >> .env && \
+# 1.2. Build and run one service to install some Laravel dependencies and create app_key:
+docker compose -f compose.dev.yaml up -d workspace && \
+docker compose -f compose.dev.yaml exec workspace bash -c "composer install && php artisan key:generate" && \
+# 1.3. Start the rest of Docker Compose Services:
+docker compose -f compose.dev.yaml up -d && \
+# 1.4. Install other dependencies and run migrations:
+docker compose -f compose.dev.yaml exec workspace bash -c " \
+. /home/www/.nvm/nvm.sh && \
+npm install && \
+php artisan migrate && \
+npm run dev"
 ```
 
-Hint: adjust the `UID` and `GID` variables in the `.env` file to match your user ID and group ID. You can find these by running `id -u` and `id -g` in the terminal.
-
-2. Start the Docker Compose Services:
-
-```bash
-docker compose -f compose.dev.yaml up -d
-```
-
-3. Install Laravel Dependencies:
-
-```bash
-docker compose -f compose.dev.yaml exec workspace bash
-composer install
-npm install
-npm run dev
-```
-
-4. Run Migrations:
-
-```bash
-docker compose -f compose.dev.yaml exec workspace php artisan migrate
-```
-
-5. Access the Application:
+2. Access the Application:
 
 Open your browser and navigate to [http://localhost](http://localhost).
 
@@ -193,7 +184,7 @@ The production image can be deployed to any Docker-compatible hosting environmen
 
 - **PHP**: Version **8.4 FPM** is used for optimal performance in both development and production environments.
 - **Node.js**: Version **22.x** is used in the development environment for building frontend assets with Vite.
-- **PostgreSQL**: Version **16** is used as the database in the examples, but you can adjust the configuration to use MySQL if preferred.
+- **MySQL**: Version **8** is used as the database in the examples, but you can adjust the configuration to use Postgres if preferred.
 - **Redis**: Used for caching and session management, integrated into both development and production environments.
 - **Nginx**: Used as the web server to serve the Laravel application and handle HTTP requests.
 - **Docker Compose**: Orchestrates the services, simplifying the process of starting and stopping the environment.
