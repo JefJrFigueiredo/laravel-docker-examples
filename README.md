@@ -165,6 +165,62 @@ For specific services, you can use:
 docker compose -f compose.dev.yaml logs -f web
 ```
 
+## Filament Admin Panel
+
+This project includes **Filament v3**, a powerful admin panel for Laravel applications. Filament provides an elegant interface for managing your application data with minimal code.
+
+### Accessing Filament
+
+1. **Login URL**: Navigate to [http://localhost/admin/login](http://localhost/admin/login)
+
+2. **Default Admin Credentials**: 
+   - Email: `email@example.com`
+   - Password: (the password you set during user creation)
+
+### Creating Additional Admin Users
+
+To create additional admin users, run:
+
+```bash
+docker compose -f compose.dev.yaml exec workspace php artisan make:filament-user
+```
+
+### Product CRUD Example
+
+The project includes a complete **Product** CRUD example with the following features:
+
+- **List Products**: View all products in a searchable, sortable table
+- **Create Product**: Add new products with validation
+- **View Product**: View detailed product information
+- **Edit Product**: Update existing products
+- **Delete Products**: Remove products (with bulk delete support)
+
+**Product Fields:**
+- Name (required, string)
+- Description (optional, text)
+- Price (required, decimal with $ prefix)
+- Stock (required, integer)
+- Active Status (boolean toggle)
+
+### Creating New Resources
+
+To create additional Filament resources for your models:
+
+```bash
+# Basic resource
+docker compose -f compose.dev.yaml exec workspace php artisan make:filament-resource ModelName
+
+# Resource with auto-generated forms and tables
+docker compose -f compose.dev.yaml exec workspace php artisan make:filament-resource ModelName --generate
+
+# Resource with view page
+docker compose -f compose.dev.yaml exec workspace php artisan make:filament-resource ModelName --generate --view
+```
+
+### Filament Documentation
+
+For more information about Filament features and customization options, visit the [official Filament documentation](https://filamentphp.com/docs).
+
 ## Production Environment
 
 The production environment is designed with security and efficiency in mind:
