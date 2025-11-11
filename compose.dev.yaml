@@ -42,8 +42,8 @@ services:
     networks:
       - laravel-development
     depends_on:
-      mysql:
-        condition: service_healthy # Wait for mysql to start
+      postgres:
+        condition: service_started # Wait for postgres to start
 
   workspace:
    # For the workspace service, we will also create a custom image to install and setup all the necessary stuff.
@@ -70,38 +70,38 @@ services:
     networks:
       - laravel-development
 
-  mysql:
-    image: mysql/mysql-server:8.0
-    restart: unless-stopped
+  # mysql:
+  #   image: mysql/mysql-server:8.0
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${DB_PORT:-3306}:3306"
+  #   environment:
+  #     MYSQL_DATABASE: ${DB_DATABASE:-app}
+  #     MYSQL_USER: ${DB_USERNAME:-laravel}
+  #     MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+  #     MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_secret} # Must be set for MySQL 8
+  #   volumes:
+  #     - mysql-data-development:/var/lib/mysql
+  #   networks:
+  #     - laravel-development
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 3
+
+  postgres:
+    image: postgres:18
     ports:
-      - "${DB_PORT:-3306}:3306"
+      - "${POSTGRES_PORT:-5432}:5432"
     environment:
-      MYSQL_DATABASE: ${DB_DATABASE:-app}
-      MYSQL_USER: ${DB_USERNAME:-laravel}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_secret} # Must be set for MySQL 8
+      - POSTGRES_DB=app
+      - POSTGRES_USER=laravel
+      - POSTGRES_PASSWORD=secret
     volumes:
-      - mysql-data-development:/var/lib/mysql
+      - postgres-data-development:/var/lib/postgresql
     networks:
       - laravel-development
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-    # postgres:
-    #   image: postgres:16
-    #   ports:
-    #     - "${POSTGRES_PORT:-5432}:5432"
-    #   environment:
-    #     - POSTGRES_DB=app
-    #     - POSTGRES_USER=laravel
-    #     - POSTGRES_PASSWORD=secret
-    #   volumes:
-    #     - postgres-data-development:/var/lib/postgresql/data
-    #   networks:
-    #     - laravel-development
 
     # redis:
     #   image: redis:alpine
@@ -112,4 +112,5 @@ networks:
   laravel-development:
 
 volumes:
-  mysql-data-development:
+  postgres-data-development:
+  # mysql-data-development:

@@ -49,58 +49,56 @@ services:
     # this service will not start until the database service passes its health check.
     # This prevents the application from trying to connect to the database before it's ready.
     depends_on:
-      mysql:
+      # mysql:
+      postgres:
         condition: service_healthy
-    # depends_on:
-    #   postgres:
-    #     condition: service_healthy
 
-  mysql:
-    image: mysql/mysql-server:8.0
-    restart: unless-stopped
-    ports:
-      # The default MySQL port is 3306
-      - "${DB_PORT:-3306}:3306"
-    environment:
-      MYSQL_DATABASE: ${DB_DATABASE:-app}
-      MYSQL_USER: ${DB_USERNAME:-laravel}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_secret} # Must be set for MySQL 8
-    volumes:
-      - mysql-data-production:/var/lib/mysql
-    networks:
-      - laravel-production
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # postgres:
-  #   image: postgres:16
+  # mysql:
+  #   image: mysql/mysql-server:8.0
   #   restart: unless-stopped
-  #   user: postgres
   #   ports:
-  #     - "${POSTGRES_PORT:-5432}:5432"
+  #     # The default MySQL port is 3306
+  #     - "${DB_PORT:-3306}:3306"
   #   environment:
-  #     - POSTGRES_DB=${POSTGRES_DATABASE:-app}
-  #     - POSTGRES_USER=${POSTGRES_USERNAME:-laravel}
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secret}
+  #     MYSQL_DATABASE: ${DB_DATABASE:-app}
+  #     MYSQL_USER: ${DB_USERNAME:-laravel}
+  #     MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+  #     MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_secret} # Must be set for MySQL 8
   #   volumes:
-  #     - postgres-data-production:/var/lib/postgresql/data
+  #     - mysql-data-production:/var/lib/mysql
   #   networks:
   #     - laravel-production
-  #   # Health check for PostgreSQL
-  #   # -----------------------------------------------------------
-  #   # Health checks allow Docker to determine if a service is operational.
-  #   # The 'pg_isready' command checks if PostgreSQL is ready to accept connections.
-  #   # This prevents dependent services from starting before the database is ready.
-  #   # -----------------------------------------------------------
   #   healthcheck:
-  #     test: [ "CMD", "pg_isready" ]
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
   #     interval: 10s
   #     timeout: 5s
-  #     retries: 5
+  #     retries: 3
+
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    user: postgres
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DATABASE:-app}
+      - POSTGRES_USER=${POSTGRES_USERNAME:-laravel}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secret}
+    volumes:
+      - postgres-data-production:/var/lib/postgresql/data
+    networks:
+      - laravel-production
+    # Health check for PostgreSQL
+    # -----------------------------------------------------------
+    # Health checks allow Docker to determine if a service is operational.
+    # The 'pg_isready' command checks if PostgreSQL is ready to accept connections.
+    # This prevents dependent services from starting before the database is ready.
+    # -----------------------------------------------------------
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # redis:
   #   image: redis:alpine
